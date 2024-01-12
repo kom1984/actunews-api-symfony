@@ -30,7 +30,7 @@ class DefaultController extends AbstractController
      * @param string $slug
      * @return Response
      */
-    #[Route('/{slug<\w+>}', name: 'default_category', methods: ['GET'])]
+    #[Route('/category/{slug<\w+>}', name: 'default_category', methods: ['GET'])]
     public function category(Category $category): Response
     {
         # $category = $categoryRepository->findOneBy(['slug' => $slug]);

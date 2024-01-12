@@ -2,7 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/actunews-syf-pgm" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/actunews-sym-php.git" vcs="Git" />
   </component>
 </project>

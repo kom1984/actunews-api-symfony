@@ -2,14 +2,31 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use App\Controller\MeController;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\PasswordStrength;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+//#[ApiResource]
+#[ApiResource(security: "is_granted('ROLE_USER')")]
+#[Get]
+#[Patch(security: "is_granted('ROLE_ADMIN') or object == user")]
+#[GetCollection( uriTemplate: "/me",
+    controller: MeController::class,
+    security: "is_granted('ROLE_USER')",
+    name: 'me')]
+#[\ApiPlatform\Metadata\Post(security: "is_granted('ROLE_ADMIN')")]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -18,6 +35,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(['message'=>'Le champ "{{ label }}" est obligatoire.'])]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: 'Votre e-mail ne peux pas dépasser {{ limit }} caractères.',
+    )]
+    #[Assert\Email(
+        message: 'Vérifiez le format de votre e-mail.',
+    )]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -27,6 +52,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\NotBlank(['message'=>'Le champ "{{ label }}" est obligatoire.'])]
+    #[Assert\PasswordStrength([
+        'minScore' => PasswordStrength::STRENGTH_STRONG,
+        'message' => 'Votre mot de passe est trop simple. Utilisez un mot de passe plus complexe pour votre sécurité.'
+    ])]
     private ?string $password = null;
 
     #[ORM\Column]
@@ -39,16 +69,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank(['message'=>'Le champ "{{ label }}" est obligatoire.'])]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: 'Votre prénom ne peux pas dépasser {{ limit }} caractères.',
+    )]
+    #[Groups(['read:category:collection','read:post:item'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank(['message'=>'Le champ "{{ label }}" est obligatoire.'])]
+    #[Assert\Length(
+        max: 180,
+        maxMessage: 'Votre nom ne peux pas dépasser {{ limit }} caractères.',
+    )]
+    #[Groups(['read:category:collection','read:post:item'])]
     private ?string $lastName = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Post::class)]
     private Collection $posts;
 
-    public function __construct()
+    public function __construct(array $roles)
     {
+        $this->roles = $roles;
         $this->posts = new ArrayCollection();
         $this->createdAt = $this->updatedAt = new \DateTimeImmutable();
     }
@@ -84,6 +127,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->email = $email;
 
         return $this;
+    }
+
+    public function getFullName(): string
+    {
+        return $this->firstName . ' ' . $this->lastName;
     }
 
     /**
@@ -129,11 +177,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-    public function getFullName(): string
-    {
-        return $this->firstName . ' ' . $this->lastName;
-    }
-
 
     /**
      * @see UserInterface

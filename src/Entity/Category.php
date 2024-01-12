@@ -2,12 +2,29 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
+//#[ApiResource]
+#[ApiResource(paginationItemsPerPage: 10)]
+//#[ApiResource(
+   // paginationItemsPerPage: 5,
+    //normalizationContext: ['groups' => ['read:post:collection']]
+//)]
+#[Get]
+#[Put]
+#[Patch]
+#[\ApiPlatform\Metadata\Post]
+#[GetCollection(normalizationContext: ['groups' => ['read:category:collection']])]
 class Category
 {
     #[ORM\Id]
@@ -16,9 +33,11 @@ class Category
     private ?int $id = null;
 
     #[ORM\Column(length: 80)]
+    #[Groups(['read:post:item','read:category:collection'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 80)]
+    #[Groups(['read:category:collection','read:post:item'])]
     private ?string $slug = null;
 
     #[ORM\Column]

@@ -4,5 +4,6 @@
     <option name="pathToTranslation" value="translations" />
     <option name="directoryToApp" value="src" />
     <option name="pluginEnabled" value="true" />
+    <option name="lastServiceGeneratorLanguage" value="yaml" />
   </component>
 </project>

@@ -11,17 +11,18 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[Route('/dashboard/post')]
 class PostController extends AbstractController
 {
 
-    #[Route('/dashboard/post/create', name: 'post_create', methods: ['GET', 'POST'])]
+    #[Route('/create', name: 'post_create', methods: ['GET', 'POST'])]
     public function createPost(Request $request, EntityManagerInterface $manager)
     {
         # Création du formulaire à partir de mon modèle PostType
         $post = new Post();
-        # FIXME A remplacer par l'utilisateur connecté
-        $post->setUser($manager->getRepository(User::class)->findOneByEmail('hugo@actu.news'));
+        $post->setUser($this->getUser());
 
         # dump($post);
         $form = $this->createForm(PostType::class, $post);
